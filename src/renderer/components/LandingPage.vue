@@ -264,6 +264,7 @@ export default {
             const values = [this.info.accessKey, this.info.secretKey, this.info.bucket, this.info.domain]
             if (values.indexOf('') > -1) {
                 this.showInfoDialog()
+                return
             }
         }
     },
