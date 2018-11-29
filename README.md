@@ -15,7 +15,7 @@
 
 ### Step0
 
-下载 ![release](https://github.com/fanmingfei/qiniu_cdn_tool/releases) 版本，目前只有 Mac 版
+下载 [release](https://github.com/fanmingfei/qiniu_cdn_tool/releases) 版本，目前只有 Mac 版
 
 ### Step1
 创建七牛账号和仓库，获取 accessKey/secretKey
