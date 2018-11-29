@@ -14,9 +14,9 @@
                 </el-table-column>
                 <el-table-column width="280">
                     <template slot-scope="scope">
-                        <el-popover placement="left" width="500" trigger="hover" content="" >
-                            <img :src="getQualityUrl(scope.row.url)" alt="" class="display-image">
-                            <el-button size="small" icon="el-icon-view" circle  slot="reference" :disabled="!isImage(scope.row.url)"></el-button>
+                        <el-popover placement="left" width="500" trigger="hover" content="" v-if="!scope.row.error">
+                            <img :src="getQualityUrl(scope.row.url)" alt="" class="display-image" >
+                            <el-button size="small" icon="el-icon-view" circle slot="reference" :disabled="!isImage(scope.row.url)"></el-button>
                         </el-popover>
                         <el-button @click="open(scope.row.url)" v-if="!scope.row.error" size="small" type="primary">打开链接</el-button>
                         <el-button @click="copy(scope.row.url)" v-if="!scope.row.error" size="small" type="success">复制链接</el-button>
@@ -50,6 +50,8 @@
 import fs from 'fs'
 import path from 'path'
 import { clipboard } from 'electron'
+import streamBuffers from 'stream-buffers'
+
 import qiniu from 'qiniu'
 import md5 from 'md5'
 import mime from 'mime'
@@ -115,11 +117,16 @@ export default {
                 this.upload(f.path)
             }
         },
+        getName(content, ext) {
+            const name = md5(content)
+            return basePath + name + ext
+        },
+        getExt(filePath){
+          return path.parse(filePath).ext
+        },
         upload(filePath) {
             const file = fs.readFileSync(filePath)
-            const name = md5(file)
-            console.log(path.parse(filePath))
-            const key = basePath + name + path.parse(filePath).ext
+            const key = this.getName(file, this.getExt(filePath))
             const localFile = filePath
             const config = new qiniu.conf.Config();
             const formUploader = new qiniu.form_up.FormUploader(config);
@@ -127,52 +134,107 @@ export default {
             // 文件上传
             formUploader.putFile(this.uploadToken, key, localFile, putExtra, (respErr,
                 respBody, respInfo) => {
-                let info
-                if (respErr) {
-                    info = {
-                        error: true,
-                        url: localFile
-                    }
-                }
-                if (respInfo.statusCode == 200) {
-                    info = {
-                        url: domain + respBody.key
-                    }
-                } else {
-                    info = {
-                        error: true,
-                        url: localFile
-                    }
-                }
-                this.addItem(info)
+                this.uploadCallback(respErr,
+                    respBody, respInfo, localFile)
             });
+        },
+        initDrop() {
+
+            const holder = this.$refs.uploaderPleace
+            holder.ondragover = () => {
+                return false;
+            };
+
+            holder.ondragleave = () => {
+                return false;
+            };
+
+            holder.ondragend = () => {
+                return false;
+            };
+
+            holder.ondrop = (e) => {
+                e.preventDefault();
+
+                for (let f of e.dataTransfer.files) {
+                    console.log('File(s) you dragged here: ', f.path)
+                    this.upload(f.path)
+                }
+
+                return false;
+            };
+        },
+        uploadCallback(respErr,
+            respBody, respInfo, localFile) {
+            console.log(respErr,
+                respBody, respInfo)
+            let info
+            if (respErr) {
+                info = {
+                    error: true,
+                    url: localFile
+                }
+            }
+            if (respInfo.statusCode == 200) {
+                info = {
+                    url: domain + respBody.key
+                }
+            } else {
+                info = {
+                    error: true,
+                    url: localFile
+                }
+            }
+            this.addItem(info)
+        },
+        uploadStream() {
+            const formats = clipboard.availableFormats()
+            console.log(formats)
+            if (formats.length !== 1) {
+              this.$message({
+                type: 'info',
+                message: '目前只支持截图粘贴'
+              })
+              return
+            }
+            if (formats.join(',').indexOf('image') === -1) {
+              this.$message({
+                type: 'info',
+                message: '目前只支持截图粘贴'
+              })
+              return
+            }
+            const img = clipboard.readImage()
+            const jpg = img.toJPEG(100)
+            const size = jpg.length * 8
+            var stream = new streamBuffers.ReadableStreamBuffer({
+                frequency: 10, // in milliseconds.
+                chunkSize: size // in bytes.
+            });
+            stream.put(jpg)
+            stream.stop()
+
+            const key = this.getName(jpg, '.jpg')
+            const config = new qiniu.conf.Config();
+            const formUploader = new qiniu.form_up.FormUploader(config);
+            const putExtra = new qiniu.form_up.PutExtra();
+            const readableStream = stream; // 可读的流
+            formUploader.putStream(this.uploadToken, key, readableStream, putExtra, (respErr,
+                respBody, respInfo) => {
+                this.uploadCallback(respErr,
+                    respBody, respInfo, key)
+            });
+        },
+        initCtrlV() {
+            document.body.addEventListener('paste', e => {
+                this.uploadStream()
+            })
         }
     },
     mounted() {
         this.initQiniu()
-        const holder = this.$refs.uploaderPleace
-        holder.ondragover = () => {
-            return false;
-        };
-
-        holder.ondragleave = () => {
-            return false;
-        };
-
-        holder.ondragend = () => {
-            return false;
-        };
-
-        holder.ondrop = (e) => {
-            e.preventDefault();
-
-            for (let f of e.dataTransfer.files) {
-                console.log('File(s) you dragged here: ', f.path)
-                this.upload(f.path)
-            }
-
-            return false;
-        };
+        this.initDrop()
+        this.initCtrlV()
     }
 }
 </script>

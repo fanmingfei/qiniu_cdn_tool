@@ -4,15 +4,22 @@
 
 ![](http://src.fanmingfei.com/tool/f34335570df72584da95bbce50828e73.png)
 
+## 使用方法
+- 点击右下角上传文件
+- 将文件拖拽到应用内
+- 截图后粘贴到应用内（目前只支持截图粘贴）
+- 右下角设置图像质量
 
-## Step1
+## 构建方法
+
+### Step1
 创建七牛账号和仓库，获取 accessKey/secretKey
 
 在这里可以找得到：
 
 ![](http://src.fanmingfei.com/tool/3205b81520fa34ddd52fe0b798e3bff5.png)
 
-## Step2
+### Step2
 编辑 `./src/renderer/config.json`
 ```
 {
@@ -29,10 +36,9 @@
 
 
 
+### Step3
 
-
-
-#### Build Setup
+启动/构建
 
 ``` bash
 # install dependencies
