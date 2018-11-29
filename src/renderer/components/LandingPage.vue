@@ -3,7 +3,6 @@
         <div class="upload-box el-upload-dragger" v-if="list.length === 0">
             <i class="el-icon-upload"></i>
             <div class="el-upload__text">将文件拖到此处</div>
-            <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
         </div>
         <div class="list" v-if="list.length > 0">
             <el-table :data="list" size="mini" :stripe="true" style="width: 100%" :row-class-name="tableRowClassName">
