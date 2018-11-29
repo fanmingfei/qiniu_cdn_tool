@@ -17,7 +17,7 @@
     "postinstall": ""
   },
   "build": {
-    "productName": "qiniu_image_cdn_tool",
+    "productName": "七牛CDN工具",
     "appId": "com.fanmingfei.qiniu",
     "directories": {
       "output": "build"

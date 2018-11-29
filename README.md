@@ -10,7 +10,11 @@
 - 截图后粘贴到应用内（目前只支持截图粘贴）
 - 右下角设置图像质量
 
-## 构建方法
+## Quick Start
+
+### Step0
+
+我还没有找到合适放这个应用的地方，构建后比较大，可能要经常更新，所以大家可以 clone 下来自己构建，或者联系我发给你[捂脸哭]
 
 ### Step1
 创建七牛账号和仓库，获取 accessKey/secretKey
@@ -20,25 +24,19 @@
 ![](http://src.fanmingfei.com/tool/3205b81520fa34ddd52fe0b798e3bff5.png)
 
 ### Step2
-编辑 `./src/renderer/config.json`
-```
-{
-    "accessKey": "", // 七牛的 accessKey
-    "secretKey": "", // 七牛的 secretKey
-    "bucket": "", // 七牛仓库名称
-    "domain": "", // 该仓库绑定的域名
-    "basePath": "" // 上传文件前缀
-}
-```
+
+打开应用，填写对应信息。
+
+点击左下角的设置按钮可以更改此内容。
+
+![](http://src.fanmingfei.com/tool/2dd530ed34c8fc0f7a2d26a99cab7704.jpg)
 
 上传文件前缀：
 ![](http://src.fanmingfei.com/tool/3746936b0aa5f063e80bfb9acdc8353f.png)
 
 
 
-### Step3
-
-启动/构建
+## 如果想进一步开发
 
 ``` bash
 # install dependencies

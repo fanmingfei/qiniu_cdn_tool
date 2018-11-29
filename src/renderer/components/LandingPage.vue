@@ -26,11 +26,14 @@
             </el-table>
         </div>
         <el-row class="bottom">
-            <el-col :span="12">
+            <el-col :span="2">
                 <div class="upload-btn">
                     <input ref="input" type="file" multiple class="upload-input" @change="change">
                     <el-button type="primary" icon="el-icon-upload" circle></el-button>
                 </div>
+            </el-col>
+            <el-col :span="10">
+                <el-button type="info" icon="el-icon-setting" circle @click="showInfoDialog"></el-button>
             </el-col>
             <el-col :span="12">
                 <el-row>
@@ -43,6 +46,16 @@
                 </el-row>
             </el-col>
         </el-row>
+        <el-dialog ref="dialog" title="设置" :visible.sync="dialogVisible" width="30%">
+            <el-input class="info-input" v-model="info.accessKey" placeholder="accessKey"></el-input>
+            <el-input class="info-input" v-model="info.secretKey" placeholder="secretKey"></el-input>
+            <el-input class="info-input" v-model="info.bucket" placeholder="bucket 仓库名称"></el-input>
+            <el-input class="info-input" v-model="info.domain" placeholder="域名"></el-input>
+            <el-input class="info-input" v-model="info.basePath" placeholder="路径前缀"></el-input>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="setInfo">确 定</el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 <script>
@@ -54,13 +67,7 @@ import streamBuffers from 'stream-buffers'
 import qiniu from 'qiniu'
 import md5 from 'md5'
 import mime from 'mime'
-import {
-    accessKey,
-    secretKey,
-    bucket,
-    domain,
-    basePath
-} from '../config.json'
+
 
 export default {
     name: 'landing-page',
@@ -68,10 +75,31 @@ export default {
     data() {
         return {
             list: [],
-            quality: 100
+            quality: 100,
+            dialogVisible: false,
+            info: {
+                accessKey: localStorage.getItem('accessKey'),
+                secretKey: localStorage.getItem('secretKey'),
+                bucket: localStorage.getItem('bucket'),
+                domain: localStorage.getItem('domain'),
+                basePath: localStorage.getItem('basePath')
+            }
         }
     },
     methods: {
+        preventDefault(e) {
+            console.log(e)
+        },
+        showInfoDialog() {
+            this.dialogVisible = true
+        },
+        setInfo() {
+            this.dialogVisible = false
+            for (let key in this.info) {
+                localStorage.setItem(key, this.info[key])
+            }
+            this.initQiniu()
+        },
         tableRowClassName({ row, rowIndex }) {
             if (row.error) {
                 return 'upload-err'
@@ -81,13 +109,14 @@ export default {
             this.$electron.shell.openExternal(this.getQualityUrl(url))
         },
         initQiniu() {
-            const mac = new qiniu.auth.digest.Mac(accessKey, secretKey);
+            const mac = new qiniu.auth.digest.Mac(this.info.accessKey, this.info.secretKey);
             const options = {
-                scope: bucket,
+                scope: this.info.bucket,
                 expires: 7200
             };
             const putPolicy = new qiniu.rs.PutPolicy(options);
             this.uploadToken = putPolicy.uploadToken(mac);
+            console.log(mac, putPolicy, this.uploadToken)
         },
         addItem(item) {
             console.log(item)
@@ -118,10 +147,10 @@ export default {
         },
         getName(content, ext) {
             const name = md5(content)
-            return basePath + name + ext
+            return this.info.basePath + name + ext
         },
-        getExt(filePath){
-          return path.parse(filePath).ext
+        getExt(filePath) {
+            return path.parse(filePath).ext
         },
         upload(filePath) {
             const file = fs.readFileSync(filePath)
@@ -173,10 +202,9 @@ export default {
                     error: true,
                     url: localFile
                 }
-            }
-            if (respInfo.statusCode == 200) {
+            } else if (respInfo.statusCode == 200) {
                 info = {
-                    url: domain + respBody.key
+                    url: this.info.domain + respBody.key
                 }
             } else {
                 info = {
@@ -190,18 +218,18 @@ export default {
             const formats = clipboard.availableFormats()
             console.log(formats)
             if (formats.length !== 1) {
-              this.$message({
-                type: 'info',
-                message: '目前只支持截图粘贴'
-              })
-              return
+                this.$message({
+                    type: 'info',
+                    message: '目前只支持截图粘贴'
+                })
+                return
             }
             if (formats.join(',').indexOf('image') === -1) {
-              this.$message({
-                type: 'info',
-                message: '目前只支持截图粘贴'
-              })
-              return
+                this.$message({
+                    type: 'info',
+                    message: '目前只支持截图粘贴'
+                })
+                return
             }
             const img = clipboard.readImage()
             const jpg = img.toJPEG(100)
@@ -226,11 +254,21 @@ export default {
         },
         initCtrlV() {
             document.body.addEventListener('paste', e => {
+                if (this.dialogVisible) { // worse
+                    return
+                }
                 this.uploadStream()
             })
+        },
+        checkInfo() {
+            const values = [this.info.accessKey, this.info.secretKey, this.info.bucket, this.info.domain]
+            if (values.indexOf('') > -1) {
+                this.showInfoDialog()
+            }
         }
     },
     mounted() {
+        this.checkInfo()
         this.initQiniu()
         this.initDrop()
         this.initCtrlV()
@@ -297,5 +335,9 @@ export default {
 
 .upload-err {
     background: #ff9e00 !important;
+}
+
+.info-input {
+    margin-bottom: 6px;
 }
 </style>
