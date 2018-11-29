@@ -5,16 +5,17 @@
 ![](http://src.fanmingfei.com/tool/f34335570df72584da95bbce50828e73.png)
 
 ## 使用方法
-- 点击右下角上传文件
+- 点击左下角上传文件
 - 将文件拖拽到应用内
 - 截图后粘贴到应用内（目前只支持截图粘贴）
 - 右下角设置图像质量
+- 左下角设置按钮可以设置所需 CDN 信息
 
 ## Quick Start
 
 ### Step0
 
-我还没有找到合适放这个应用的地方，构建后比较大，可能要经常更新，所以大家可以 clone 下来自己构建，或者联系我发给你[捂脸哭]
+下载 ![release](https://github.com/fanmingfei/qiniu_cdn_tool/releases) 版本，目前只有 Mac 版
 
 ### Step1
 创建七牛账号和仓库，获取 accessKey/secretKey
