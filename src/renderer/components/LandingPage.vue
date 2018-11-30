@@ -68,7 +68,6 @@ import qiniu from 'qiniu'
 import md5 from 'md5'
 import mime from 'mime'
 
-
 export default {
     name: 'landing-page',
     components: {},

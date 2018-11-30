@@ -1,5 +1,6 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
-
+import { app, BrowserWindow, ipcMain, Menu } from 'electron'
+import template from './menu'
+console.log(template)
 /**
  * Set `__static` path to static files in production
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
@@ -28,6 +29,10 @@ function createWindow () {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+  
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
+
 }
 
 app.on('ready', createWindow)
@@ -50,6 +55,7 @@ ipcMain.on('ondragstart', (event, filePath) => {
     icon: '/path/to/icon.png'
   })
 })
+
 
 /**
  * Auto Updater
